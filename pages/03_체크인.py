@@ -2,8 +2,8 @@
 import streamlit as st
 from datetime import date
 
-import os
-import streamlit.components.v1 as _components
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.auth import current_user
 from utils.db import get_service_client, safe_query, record_meal_checkin
@@ -76,14 +76,10 @@ tab_qr, tab_manual = st.tabs(["📷 QR 스캔", "⌨️ 수동 입력"])
 
 # ── 탭1: QR 스캔 ──────────────────────────────────────────
 with tab_qr:
-    _frontend = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        "components", "qr_scanner", "frontend"
-    )
-    _qr_scanner = _components.declare_component("qr_scanner", path=_frontend)
+    from components.qr_scanner import qr_scanner
 
     st.info("📷 학생증 QR코드를 카메라에 비춰주세요.")
-    qr_result = _qr_scanner(key="qr_scanner", default=None)
+    qr_result = qr_scanner(key="qr_scanner")
 
     if qr_result and st.session_state.get("last_qr") != qr_result:
         st.session_state["last_qr"] = qr_result
