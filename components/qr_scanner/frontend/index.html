@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: transparent; font-family: sans-serif; }
+    #reader { width: 100%; max-width: 480px; margin: 0 auto; }
+    #reader video { border-radius: 8px; }
+    #reader canvas { border-radius: 8px; }
+    #status {
+      margin-top: 8px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      display: none;
+    }
+    #status.ok  { background: #d4edda; color: #155724; display: block; }
+    #status.err { background: #f8d7da; color: #721c24; display: block; }
+  </style>
+</head>
+<body>
+  <div id="reader"></div>
+  <div id="status"></div>
+
+  <script>
+    // ── Streamlit 통신 ──────────────────────────────────
+    function sendValue(value) {
+      window.parent.postMessage({
+        isStreamlitMessage: true,
+        type: "streamlit:setComponentValue",
+        value: value,
+        dataType: "json"
+      }, "*");
+    }
+
+    function setHeight() {
+      window.parent.postMessage({
+        isStreamlitMessage: true,
+        type: "streamlit:setFrameHeight",
+        height: document.body.scrollHeight + 16
+      }, "*");
+    }
+
+    window.parent.postMessage({
+      isStreamlitMessage: true,
+      type: "streamlit:componentReady",
+      apiVersion: 1
+    }, "*");
+
+    // ── QR 스캐너 ────────────────────────────────────────
+    const status = document.getElementById("status");
+    let lastResult = null;
+    let scanner = null;
+
+    function onScanSuccess(text) {
+      if (text === lastResult) return;
+      lastResult = text;
+      status.className = "ok";
+      status.textContent = "✅ QR 인식됨";
+      sendValue(text);
+      setTimeout(() => { lastResult = null; }, 2000); // 2초 후 같은 QR 재인식 허용
+    }
+
+    function startScanner() {
+      scanner = new Html5Qrcode("reader");
+      scanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 30,
+          qrbox: { width: 360, height: 360 },
+          aspectRatio: 1.0,
+          disableFlip: false,
+        },
+        onScanSuccess
+      ).then(() => {
+        setHeight();
+      }).catch(err => {
+        // 후면 카메라 실패 시 기본 카메라로 재시도
+        scanner.start(
+          { facingMode: "user" },
+          { fps: 30, qrbox: { width: 240, height: 240 } },
+          onScanSuccess
+        ).then(() => setHeight())
+         .catch(() => {
+           status.className = "err";
+           status.textContent = "❌ 카메라 접근 실패";
+           setHeight();
+         });
+      });
+    }
+
+    startScanner();
+  </script>
+</body>
+</html>

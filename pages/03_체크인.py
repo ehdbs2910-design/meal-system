@@ -2,12 +2,11 @@
 import streamlit as st
 from datetime import date
 
-from utils.auth import require_login, current_user
-from utils.db import get_client, safe_query, record_meal_checkin
+from utils.auth import current_user
+from utils.db import get_service_client, safe_query, record_meal_checkin
 from utils.qr_utils import verify_token
 
 st.set_page_config(page_title="급식 체크인", page_icon="✅", layout="centered")
-require_login()
 
 ALLERGY_MAP = {
     "1": "난류", "2": "우유", "3": "메밀", "4": "땅콩", "5": "대두",
@@ -19,7 +18,7 @@ ALLERGY_MAP = {
 
 def get_student_by_id(student_id: str):
     return safe_query(
-        lambda: get_client()
+        lambda: get_service_client()
             .table("students").select("*")
             .eq("id", student_id).eq("is_active", True)
             .single().execute(),
@@ -29,7 +28,7 @@ def get_student_by_id(student_id: str):
 
 def get_student_by_number(student_number: str):
     return safe_query(
-        lambda: get_client()
+        lambda: get_service_client()
             .table("students").select("*")
             .eq("student_number", student_number).eq("is_active", True)
             .single().execute(),
@@ -74,17 +73,13 @@ tab_qr, tab_manual = st.tabs(["📷 QR 스캔", "⌨️ 수동 입력"])
 
 # ── 탭1: QR 스캔 ──────────────────────────────────────────
 with tab_qr:
-    try:
-        from streamlit_qrcode_scanner import qrcode_scanner
-    except ImportError:
-        st.error("❌ `pip install streamlit-qrcode-scanner` 필요")
-        st.stop()
+    from components.qr_scanner import qr_scanner
 
-    qr_result = qrcode_scanner(key="qr_scanner")
+    st.info("📷 학생증 QR코드를 카메라에 비춰주세요.")
+    qr_result = qr_scanner(key="qr_scanner")
 
     if qr_result and st.session_state.get("last_qr") != qr_result:
         st.session_state["last_qr"] = qr_result
-
         student_id = verify_token(qr_result)
         if not student_id:
             st.error("❌ 유효하지 않은 QR 코드입니다.")
@@ -94,9 +89,6 @@ with tab_qr:
                 st.error("❌ 학생 정보를 찾을 수 없습니다.")
             else:
                 checkin_and_show(student)
-
-    elif st.session_state.get("last_qr"):
-        st.info("📷 다음 학생 QR을 스캔하세요.")
 
 
 # ── 탭2: 수동 입력 ────────────────────────────────────────

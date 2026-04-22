@@ -70,7 +70,7 @@ def record_meal_checkin(
 ) -> tuple[dict | None, str | None]:
     """급식 수령 체크인 등록 (중복 시 에러 반환)"""
     def _query():
-        return get_client().table("meal_records").insert({
+        return get_service_client().table("meal_records").insert({
             "student_id": student_id,
             "meal_type": meal_type,
             "checked_by": checked_by,
