@@ -68,8 +68,14 @@ def checkin_and_show(student: dict):
 # 메인 UI
 # ════════════════════════════════════════════════════════════
 
-st.title("✅ 급식 체크인")
-st.caption(f"오늘: {date.today().strftime('%Y년 %m월 %d일')}")
+st.markdown(
+    f"<div style='display:flex;justify-content:space-between;align-items:center;"
+    f"margin-bottom:8px;'>"
+    f"<h4 style='margin:0;'>✅ 급식 체크인</h4>"
+    f"<span style='color:#888;font-size:13px;'>{date.today().strftime('%Y-%m-%d')}</span>"
+    f"</div>",
+    unsafe_allow_html=True,
+)
 
 tab_qr, tab_manual = st.tabs(["📷 QR 스캔", "⌨️ 수동 입력"])
 
@@ -78,7 +84,6 @@ tab_qr, tab_manual = st.tabs(["📷 QR 스캔", "⌨️ 수동 입력"])
 with tab_qr:
     from components.qr_scanner import qr_scanner
 
-    st.info("📷 학생증 QR코드를 카메라에 비춰주세요.")
     qr_result = qr_scanner(key="qr_scanner")
 
     if qr_result and st.session_state.get("last_qr") != qr_result:
