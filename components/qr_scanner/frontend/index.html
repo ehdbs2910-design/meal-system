@@ -6,20 +6,31 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: transparent; font-family: sans-serif; }
-    #reader { width: 100%; margin: 0 auto; }
+    :root { --scan-h: 45vh; }
+    #reader {
+      width: 100%;
+      max-width: 560px;
+      margin: 0 auto;
+    }
     #reader video {
       border-radius: 8px;
       width: 100% !important;
-      height: auto !important;
+      height: var(--scan-h) !important;
       object-fit: cover;
     }
     #reader__scan_region {
       background: #000 !important;
-      min-height: 60vh;
+      height: var(--scan-h);
+      overflow: hidden;
     }
     #reader__scan_region img { display: none; }
     #reader__dashboard { padding: 4px !important; }
     #reader__dashboard_section_csr { display: none !important; }
+    /* 가로모드에서는 높이 줄임 */
+    @media (orientation: landscape) {
+      :root { --scan-h: 60vh; }
+      #reader { max-width: 70vh; }
+    }
     #status {
       margin-top: 8px;
       padding: 6px 12px;
