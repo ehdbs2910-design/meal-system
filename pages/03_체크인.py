@@ -2,6 +2,9 @@
 import streamlit as st
 from datetime import date
 
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from utils.auth import current_user
 from utils.db import get_service_client, safe_query, record_meal_checkin
 from utils.qr_utils import verify_token
