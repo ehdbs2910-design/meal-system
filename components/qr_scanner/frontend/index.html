@@ -6,7 +6,6 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: transparent; font-family: sans-serif; }
-    :root { --scan-h: 45vh; }
     #reader {
       width: 100%;
       max-width: 560px;
@@ -15,22 +14,17 @@
     #reader video {
       border-radius: 8px;
       width: 100% !important;
-      height: var(--scan-h) !important;
+      height: var(--scan-h, 400px) !important;
       object-fit: cover;
     }
     #reader__scan_region {
       background: #000 !important;
-      height: var(--scan-h);
+      height: var(--scan-h, 400px) !important;
       overflow: hidden;
     }
     #reader__scan_region img { display: none; }
     #reader__dashboard { padding: 4px !important; }
     #reader__dashboard_section_csr { display: none !important; }
-    /* 가로모드에서는 높이 줄임 */
-    @media (orientation: landscape) {
-      :root { --scan-h: 60vh; }
-      #reader { max-width: 70vh; }
-    }
     #status {
       margin-top: 8px;
       padding: 6px 12px;
@@ -85,15 +79,26 @@
       setTimeout(() => { lastResult = null; }, 2000); // 2초 후 같은 QR 재인식 허용
     }
 
+    function applyScanHeight() {
+      // iframe 폭 기준으로 정사각형에 가까운 높이 (최대 500px)
+      const w = window.innerWidth;
+      const h = Math.min(Math.max(Math.floor(w * 1.0), 320), 500);
+      document.documentElement.style.setProperty("--scan-h", h + "px");
+      return h;
+    }
+
     function qrboxSize(viewW, viewH) {
       const minEdge = Math.min(viewW, viewH);
-      const size = Math.floor(minEdge * 0.75);
+      const size = Math.floor(minEdge * 0.7);
       return { width: size, height: size };
     }
 
     function bumpHeight() {
-      // 동영상 로딩 후 여러 번 높이 갱신
-      [200, 600, 1200, 2000].forEach(t => setTimeout(setHeight, t));
+      applyScanHeight();
+      [100, 400, 1000, 2000].forEach(t => setTimeout(() => {
+        applyScanHeight();
+        setHeight();
+      }, t));
     }
 
     function startScanner() {
