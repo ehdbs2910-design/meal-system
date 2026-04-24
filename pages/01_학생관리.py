@@ -4,7 +4,7 @@ import pandas as pd
 from loguru import logger
 
 from utils.auth import require_login, is_admin, render_sidebar_nav
-from utils.db import get_client, safe_query
+from utils.db import get_client, get_service_client, safe_query
 
 st.set_page_config(page_title="학생 관리", page_icon="👨‍🎓", layout="wide")
 require_login()
@@ -55,6 +55,18 @@ def delete_student(student_id: str):
             .execute(),
         "학생 삭제 실패"
     )
+
+
+def delete_all_students_hard() -> str | None:
+    """전체 학생 완전 삭제 (CASCADE로 급식 기록도 삭제)"""
+    try:
+        get_service_client().table("students").delete().neq(
+            "id", "00000000-0000-0000-0000-000000000000"
+        ).execute()
+        return None
+    except Exception as e:
+        logger.error(f"학생 일괄 삭제 실패: {e}")
+        return str(e)
 
 
 def promote_students():
@@ -175,6 +187,25 @@ with tab1:
         display_df.columns = ["학년", "반", "번호", "이름", "학번"]
 
         st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+        # 전체 일괄 삭제 (관리자만)
+        if is_admin():
+            st.divider()
+            with st.expander("🔥 전체 학생 일괄 삭제"):
+                st.warning(f"현재 등록된 **{len(students)}명** 전체를 삭제합니다. "
+                           "급식 수령 기록도 함께 삭제되며 되돌릴 수 없습니다.")
+                confirm_all = st.text_input("확인 문구: `delete all students`",
+                                             key="confirm_delete_all")
+                if st.button("🔥 전체 삭제 실행", type="primary",
+                             use_container_width=True,
+                             disabled=(confirm_all != "delete all students")):
+                    with st.spinner("삭제 중..."):
+                        err = delete_all_students_hard()
+                    if err:
+                        st.error(f"❌ {err}")
+                    else:
+                        st.success("✅ 전체 학생이 삭제되었습니다.")
+                        st.rerun()
 
         # 수정/삭제 (관리자만)
         if is_admin():
