@@ -45,6 +45,7 @@
     function sendValue(value) {
       window.parent.postMessage({
         isStreamlitMessage: true,
+        apiVersion: 1,
         type: "streamlit:setComponentValue",
         value: value,
         dataType: "json"
@@ -54,15 +55,23 @@
     function setHeight() {
       window.parent.postMessage({
         isStreamlitMessage: true,
+        apiVersion: 1,
         type: "streamlit:setFrameHeight",
         height: document.body.scrollHeight + 16
       }, "*");
     }
 
+    // Streamlit이 보내는 render 이벤트 처리
+    window.addEventListener("message", function(e) {
+      if (e.data && e.data.type === "streamlit:render") {
+        setHeight();
+      }
+    });
+
     window.parent.postMessage({
       isStreamlitMessage: true,
-      type: "streamlit:componentReady",
-      apiVersion: 1
+      apiVersion: 1,
+      type: "streamlit:componentReady"
     }, "*");
 
     // ── QR 스캐너 ────────────────────────────────────────
