@@ -3,7 +3,7 @@ import streamlit as st
 from datetime import date
 
 from utils.config import APP_NAME, SCHOOL_NAME, validate_env
-from utils.auth import login, logout, current_user, render_sidebar_nav
+from utils.auth import current_user, render_sidebar_nav
 from utils.db import get_service_client, safe_query, record_meal_checkin
 from utils.qr_utils import verify_token
 from components.qr_scanner import qr_scanner
