@@ -21,6 +21,12 @@ if missing:
     st.error(f"⚠️ 환경변수 누락: {', '.join(missing)}")
     st.stop()
 
+# 자동 페이지 목록 숨김 (커스텀 page_link로만 제어)
+st.markdown(
+    "<style>[data-testid='stSidebarNav']{display:none;}</style>",
+    unsafe_allow_html=True,
+)
+
 
 ALLERGY_MAP = {
     "1": "난류", "2": "우유", "3": "메밀", "4": "땅콩", "5": "대두",

@@ -29,22 +29,31 @@ def get_all_students():
     )
 
 
+def delete_records_in_range(start: str, end: str) -> str | None:
+    try:
+        get_service_client().table("meal_records").delete() \
+            .gte("meal_date", start).lte("meal_date", end).execute()
+        return None
+    except Exception as e:
+        logger.error(f"기존 기록 삭제 실패: {e}")
+        return str(e)
+
+
 def insert_meal_records(records: list[dict]) -> tuple[int, str | None]:
-    """대량 insert. UNIQUE 충돌은 upsert로 무시"""
+    """대량 insert."""
     client = get_service_client()
     inserted = 0
-    batch = 500
-    try:
-        for i in range(0, len(records), batch):
-            chunk = records[i:i + batch]
-            client.table("meal_records").upsert(
-                chunk, on_conflict="student_id,meal_date,meal_type", ignore_duplicates=True
-            ).execute()
+    batch = 200
+    last_err = None
+    for i in range(0, len(records), batch):
+        chunk = records[i:i + batch]
+        try:
+            client.table("meal_records").insert(chunk).execute()
             inserted += len(chunk)
-        return inserted, None
-    except Exception as e:
-        logger.error(f"meal_records insert 실패: {e}")
-        return inserted, str(e)
+        except Exception as e:
+            last_err = str(e)
+            logger.error(f"insert 실패 (chunk {i}): {e}")
+    return inserted, last_err
 
 
 def delete_all_meal_records() -> tuple[int, str | None]:
@@ -84,6 +93,8 @@ with tab_seed:
 
     include_weekend = st.checkbox("주말 포함", value=False)
 
+    st.caption("⚠️ 해당 기간의 기존 기록은 삭제 후 새로 생성됩니다.")
+
     if st.button("🌱 생성 시작", type="primary", use_container_width=True):
         students, err = get_all_students()
         if err or not students:
@@ -91,6 +102,14 @@ with tab_seed:
         else:
             student_ids = [s["id"] for s in students]
             today = date.today()
+            start_d = (today - timedelta(days=n_days)).isoformat()
+            end_d = (today - timedelta(days=1)).isoformat()
+
+            with st.spinner("기존 기록 정리 중..."):
+                del_err = delete_records_in_range(start_d, end_d)
+            if del_err:
+                st.warning(f"기존 기록 삭제 중 경고: {del_err}")
+
             records = []
 
             for d in range(n_days, 0, -1):

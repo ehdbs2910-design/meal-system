@@ -48,16 +48,26 @@ def logout():
     logger.info("로그아웃")
 
 
+def hide_auto_nav():
+    """Streamlit이 자동 생성하는 사이드바 페이지 목록 숨김."""
+    st.markdown(
+        "<style>[data-testid='stSidebarNav']{display:none;}</style>",
+        unsafe_allow_html=True,
+    )
+
+
 def require_login():
     """로그인 상태 확인. 미로그인 시 로그인 페이지로 리다이렉트."""
+    hide_auto_nav()
     if "user" not in st.session_state:
         st.warning("로그인이 필요합니다.")
-        st.page_link("app.py", label="로그인 페이지로 이동")
+        st.page_link("app.py", label="🏠 홈으로 이동")
         st.stop()
 
 
 def require_admin():
     """관리자 권한 확인. 권한 없으면 접근 차단."""
+    hide_auto_nav()
     require_login()
     if st.session_state["user"].get("role") != "admin":
         st.error("관리자 권한이 필요합니다.")
