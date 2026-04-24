@@ -3,11 +3,12 @@ import streamlit as st
 import pandas as pd
 from loguru import logger
 
-from utils.auth import require_login, is_admin
+from utils.auth import require_login, is_admin, render_sidebar_nav
 from utils.db import get_client, safe_query
 
 st.set_page_config(page_title="학생 관리", page_icon="👨‍🎓", layout="wide")
 require_login()
+render_sidebar_nav()
 
 # ── 알레르기 코드 매핑 ────────────────────────────────────
 ALLERGY_MAP = {

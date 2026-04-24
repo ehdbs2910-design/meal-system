@@ -3,13 +3,14 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-from utils.auth import require_login, is_admin
+from utils.auth import require_login, is_admin, render_sidebar_nav
 from utils.db import get_client, safe_query
 from utils.qr_utils import generate_qr_bytes
 from utils.pdf_utils import generate_student_cards_pdf
 
 st.set_page_config(page_title="QR 생성", page_icon="📱", layout="wide")
 require_login()
+render_sidebar_nav()
 
 # ── DB ────────────────────────────────────────────────────
 def load_students():

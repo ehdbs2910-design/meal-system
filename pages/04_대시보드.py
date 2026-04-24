@@ -4,11 +4,12 @@ import pandas as pd
 import plotly.express as px
 from datetime import date
 
-from utils.auth import require_login
+from utils.auth import require_login, render_sidebar_nav
 from utils.db import get_today_meal_status, get_class_stats
 
 st.set_page_config(page_title="대시보드", page_icon="📊", layout="wide")
 require_login()
+render_sidebar_nav()
 
 ALLERGY_MAP = {
     "1": "난류", "2": "우유", "3": "메밀", "4": "땅콩", "5": "대두",

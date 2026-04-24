@@ -56,6 +56,29 @@ def hide_auto_nav():
     )
 
 
+def render_sidebar_nav():
+    """모든 페이지 공통 사이드바 — 로그인 사용자에게 메뉴 표시."""
+    hide_auto_nav()
+    user = current_user()
+    with st.sidebar:
+        st.page_link("app.py", label="🏠 홈 (체크인)")
+        if user:
+            st.divider()
+            st.markdown(f"**{user['name']}** 선생님")
+            st.caption(f"권한: {'관리자' if user['role'] == 'admin' else '배식 교사'}")
+            st.divider()
+            st.page_link("pages/01_학생관리.py", label="👨‍🎓 학생 관리")
+            st.page_link("pages/02_QR생성.py",  label="📱 QR / 학생증")
+            st.page_link("pages/04_대시보드.py", label="📊 대시보드")
+            st.page_link("pages/05_AI분석.py",  label="🤖 AI 분석")
+            if user.get("role") == "admin":
+                st.page_link("pages/06_관리도구.py", label="🛠️ 관리 도구")
+            st.divider()
+            if st.button("🚪 로그아웃", use_container_width=True, key="sidebar_logout"):
+                logout()
+                st.rerun()
+
+
 def require_login():
     """로그인 상태 확인. 미로그인 시 로그인 페이지로 리다이렉트."""
     hide_auto_nav()

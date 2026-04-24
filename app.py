@@ -3,7 +3,7 @@ import streamlit as st
 from datetime import date
 
 from utils.config import APP_NAME, SCHOOL_NAME, validate_env
-from utils.auth import login, logout, current_user
+from utils.auth import login, logout, current_user, render_sidebar_nav
 from utils.db import get_service_client, safe_query, record_meal_checkin
 from utils.qr_utils import verify_token
 from components.qr_scanner import qr_scanner
@@ -82,43 +82,8 @@ def checkin_and_show(student: dict):
         st.success(f"✅ {label} — 수령 완료!")
 
 
-# ════════════════════════════════════════════════════════════
-# 사이드바: 관리자 로그인 / 메뉴
-# ════════════════════════════════════════════════════════════
+render_sidebar_nav()
 user = current_user()
-
-with st.sidebar:
-    if user:
-        st.markdown(f"**{user['name']}** 선생님")
-        st.caption(f"권한: {'관리자' if user['role'] == 'admin' else '배식 교사'}")
-        st.divider()
-        st.page_link("pages/01_학생관리.py", label="👨‍🎓 학생 관리")
-        st.page_link("pages/02_QR생성.py",  label="📱 QR / 학생증")
-        st.page_link("pages/04_대시보드.py", label="📊 대시보드")
-        st.page_link("pages/05_AI분석.py",  label="🤖 AI 분석")
-        if user.get("role") == "admin":
-            st.page_link("pages/06_관리도구.py", label="🛠️ 관리 도구")
-        st.divider()
-        if st.button("🚪 로그아웃", use_container_width=True):
-            logout()
-            st.rerun()
-    else:
-        with st.expander("🔐 관리자 로그인"):
-            with st.form("login_form"):
-                email = st.text_input("이메일", placeholder="teacher@school.kr")
-                password = st.text_input("비밀번호", type="password")
-                submitted = st.form_submit_button("로그인", use_container_width=True)
-            if submitted:
-                if not email or not password:
-                    st.warning("이메일과 비밀번호를 입력해주세요.")
-                else:
-                    with st.spinner("인증 중..."):
-                        success, msg = login(email, password)
-                    if success:
-                        st.success(msg)
-                        st.rerun()
-                    else:
-                        st.error(msg)
 
 
 # ════════════════════════════════════════════════════════════

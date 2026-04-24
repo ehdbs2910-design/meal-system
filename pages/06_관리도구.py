@@ -8,11 +8,12 @@ from datetime import date, timedelta, datetime, timezone
 import streamlit as st
 from loguru import logger
 
-from utils.auth import require_admin
+from utils.auth import require_admin, render_sidebar_nav
 from utils.db import get_service_client, safe_query
 
 st.set_page_config(page_title="관리 도구", page_icon="🛠️", layout="centered")
 require_admin()
+render_sidebar_nav()
 
 st.title("🛠️ 관리 도구")
 st.caption("데이터 생성·초기화는 되돌릴 수 없으니 신중히 사용하세요.")

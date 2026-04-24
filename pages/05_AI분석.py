@@ -5,11 +5,12 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
-from utils.auth import require_login
+from utils.auth import require_login, render_sidebar_nav
 from utils.db import get_meal_history, get_students
 
 st.set_page_config(page_title="AI 분석", page_icon="🤖", layout="wide")
 require_login()
+render_sidebar_nav()
 
 
 # ════════════════════════════════════════════════════════════
