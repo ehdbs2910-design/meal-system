@@ -126,9 +126,13 @@
     }
 
     function applyScanHeight() {
-      // iframe 폭 기준으로 정사각형에 가까운 높이 (최대 500px)
-      const w = window.innerWidth;
-      const h = Math.min(Math.max(Math.floor(w * 1.0), 320), 500);
+      // 화면 높이 기준 — 한 화면에 꽉 차되 결과 박스/탭 공간 확보
+      const vh = window.parent.innerHeight || window.innerHeight;
+      const vw = window.innerWidth;
+      // 사용 가능 높이의 약 55%, 폭/높이 둘 다 고려
+      const byHeight = Math.floor(vh * 0.55);
+      const byWidth = Math.floor(vw * 1.0);
+      const h = Math.min(Math.max(Math.min(byHeight, byWidth), 280), 460);
       document.documentElement.style.setProperty("--scan-h", h + "px");
       return h;
     }

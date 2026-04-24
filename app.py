@@ -21,9 +21,17 @@ if missing:
     st.error(f"⚠️ 환경변수 누락: {', '.join(missing)}")
     st.stop()
 
-# 자동 페이지 목록 숨김 (커스텀 page_link로만 제어)
+# 자동 페이지 목록 숨김 + 메인 영역 컴팩트화 (체크인 페이지 스크롤 제거)
 st.markdown(
-    "<style>[data-testid='stSidebarNav']{display:none;}</style>",
+    """
+    <style>
+      [data-testid='stSidebarNav']{display:none;}
+      .block-container{padding-top:1rem;padding-bottom:0.5rem;max-width:560px;}
+      header[data-testid='stHeader']{height:0;}
+      footer{display:none;}
+      .stTabs [data-baseweb="tab-list"]{margin-bottom:4px;}
+    </style>
+    """,
     unsafe_allow_html=True,
 )
 
