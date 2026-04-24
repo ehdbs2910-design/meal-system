@@ -90,6 +90,8 @@ with st.sidebar:
         st.page_link("pages/02_QR생성.py",  label="📱 QR / 학생증")
         st.page_link("pages/04_대시보드.py", label="📊 대시보드")
         st.page_link("pages/05_AI분석.py",  label="🤖 AI 분석")
+        if user.get("role") == "admin":
+            st.page_link("pages/06_관리도구.py", label="🛠️ 관리 도구")
         st.divider()
         if st.button("🚪 로그아웃", use_container_width=True):
             logout()
