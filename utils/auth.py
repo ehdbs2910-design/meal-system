@@ -77,6 +77,25 @@ def render_sidebar_nav():
             if st.button("🚪 로그아웃", use_container_width=True, key="sidebar_logout"):
                 logout()
                 st.rerun()
+        else:
+            st.divider()
+            with st.expander("🔐 관리자 로그인"):
+                with st.form("sidebar_login_form"):
+                    email = st.text_input("이메일", placeholder="teacher@school.kr")
+                    password = st.text_input("비밀번호", type="password")
+                    submitted = st.form_submit_button("로그인", use_container_width=True,
+                                                      type="primary")
+                if submitted:
+                    if not email or not password:
+                        st.warning("이메일과 비밀번호를 입력해주세요.")
+                    else:
+                        with st.spinner("인증 중..."):
+                            success, msg = login(email, password)
+                        if success:
+                            st.success(msg)
+                            st.rerun()
+                        else:
+                            st.error(msg)
 
 
 def require_login():

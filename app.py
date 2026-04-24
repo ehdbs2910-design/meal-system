@@ -60,10 +60,6 @@ def get_student_by_number(student_number: str):
 
 def checkin_and_show(student: dict):
     user = current_user()
-    allergies = student.get("allergies") or []
-    roll = student.get("class_roll_number")
-    roll_str = f" {roll}번" if roll else ""
-    label = f"**{student['name']}** ({student['grade']}학년 {student['class_number']}반{roll_str})"
 
     _, err = record_meal_checkin(
         student_id=student["id"],
@@ -71,15 +67,13 @@ def checkin_and_show(student: dict):
         device_info="web",
     )
 
-    if err and "이미" in err:
-        st.warning(f"⚠️ {label} — 이미 수령했습니다.")
-    elif err:
-        st.error(f"❌ {label} — {err}")
-    else:
-        if allergies:
-            labels = [f"{c}.{ALLERGY_MAP.get(c, c)}" for c in allergies]
-            st.error(f"⚠️ 알레르기 주의: {', '.join(labels)}")
-        st.success(f"✅ {label} — 수령 완료!")
+    status = "duplicate" if (err and "이미" in err) else ("error" if err else "ok")
+    st.session_state["last_checkin"] = {
+        "student_number": student["student_number"],
+        "name": student["name"],
+        "status": status,
+        "error": err if status == "error" else None,
+    }
 
 
 render_sidebar_nav()
@@ -101,6 +95,21 @@ st.markdown(
 
 tab_qr, tab_manual = st.tabs(["📷 QR 스캔", "⌨️ 수동 입력"])
 
+
+def render_last_checkin():
+    last = st.session_state.get("last_checkin")
+    if not last:
+        return
+    box = (
+        f"<div style='padding:10px 14px;border-radius:8px;margin-top:8px;"
+        f"background:{ {'ok':'#d4edda','duplicate':'#fff3cd','error':'#f8d7da'}[last['status']] };"
+        f"color:#222;font-size:15px;'>"
+        f"<b>직전:</b> {last['student_number']} · {last['name']}"
+        f"{ {'ok':' ✅','duplicate':' ⚠️ 중복','error':' ❌'}[last['status']] }"
+        f"</div>"
+    )
+    st.markdown(box, unsafe_allow_html=True)
+
 # ── 탭1: QR 스캔 ──────────────────────────────────────────
 with tab_qr:
     qr_result = qr_scanner(key="qr_scanner")
@@ -116,6 +125,8 @@ with tab_qr:
                 st.error("❌ 학생 정보를 찾을 수 없습니다.")
             else:
                 checkin_and_show(student)
+
+    render_last_checkin()
 
 
 # ── 탭2: 수동 입력 ────────────────────────────────────────
@@ -133,29 +144,6 @@ with tab_manual:
         else:
             checkin_and_show(student)
 
+    render_last_checkin()
 
-# ── 하단: 관리자 로그인 / 상태 표시 ──────────────────────
-st.divider()
-if user:
-    cols = st.columns([3, 1])
-    cols[0].caption(f"👤 {user['name']} 선생님으로 로그인됨 — 좌측 사이드바에서 메뉴 이용")
-    if cols[1].button("로그아웃", use_container_width=True):
-        logout()
-        st.rerun()
-else:
-    with st.expander("🔐 관리자 로그인"):
-        with st.form("login_form_main"):
-            email = st.text_input("이메일", placeholder="teacher@school.kr")
-            password = st.text_input("비밀번호", type="password")
-            submitted = st.form_submit_button("로그인", use_container_width=True, type="primary")
-        if submitted:
-            if not email or not password:
-                st.warning("이메일과 비밀번호를 입력해주세요.")
-            else:
-                with st.spinner("인증 중..."):
-                    success, msg = login(email, password)
-                if success:
-                    st.success(msg)
-                    st.rerun()
-                else:
-                    st.error(msg)
+
