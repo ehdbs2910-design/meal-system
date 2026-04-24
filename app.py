@@ -12,7 +12,7 @@ st.set_page_config(
     page_title=f"{SCHOOL_NAME} 급식 체크인",
     page_icon="✅",
     layout="centered",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="auto",
 )
 
 # ── 환경변수 검증 ────────────────────────────────────────
@@ -159,3 +159,30 @@ with tab_manual:
             st.error("❌ 해당 학번의 학생을 찾을 수 없습니다.")
         else:
             checkin_and_show(student)
+
+
+# ── 하단: 관리자 로그인 / 상태 표시 ──────────────────────
+st.divider()
+if user:
+    cols = st.columns([3, 1])
+    cols[0].caption(f"👤 {user['name']} 선생님으로 로그인됨 — 좌측 사이드바에서 메뉴 이용")
+    if cols[1].button("로그아웃", use_container_width=True):
+        logout()
+        st.rerun()
+else:
+    with st.expander("🔐 관리자 로그인"):
+        with st.form("login_form_main"):
+            email = st.text_input("이메일", placeholder="teacher@school.kr")
+            password = st.text_input("비밀번호", type="password")
+            submitted = st.form_submit_button("로그인", use_container_width=True, type="primary")
+        if submitted:
+            if not email or not password:
+                st.warning("이메일과 비밀번호를 입력해주세요.")
+            else:
+                with st.spinner("인증 중..."):
+                    success, msg = login(email, password)
+                if success:
+                    st.success(msg)
+                    st.rerun()
+                else:
+                    st.error(msg)
