@@ -120,11 +120,14 @@ def render_last_checkin():
 
 # ── 탭1: QR 스캔 ──────────────────────────────────────────
 with tab_qr:
-    qr_result = qr_scanner(key="qr_scanner")
+    qr_data = qr_scanner(key="qr_scanner")
 
-    if qr_result and st.session_state.get("last_qr") != qr_result:
-        st.session_state["last_qr"] = qr_result
-        student_id = verify_token(qr_result)
+    # qr_data는 {"text": "...", "ts": 1234567890} 형태 — ts로 중복 처리 방지
+    qr_ts = qr_data.get("ts") if isinstance(qr_data, dict) else None
+    if qr_ts and st.session_state.get("last_qr_ts") != qr_ts:
+        st.session_state["last_qr_ts"] = qr_ts
+        qr_token = qr_data["text"]
+        student_id = verify_token(qr_token)
         if not student_id:
             st.error("❌ 유효하지 않은 QR 코드입니다.")
         else:

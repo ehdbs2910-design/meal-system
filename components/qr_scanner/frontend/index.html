@@ -85,6 +85,7 @@
     // ── QR 스캐너 ────────────────────────────────────────
     const status = document.getElementById("status");
     let lastResult = null;
+    let resetTimer = null;
     let scanner = null;
 
     function beep() {
@@ -121,8 +122,10 @@
       flashReader();
       beep();
       vibrate();
-      sendValue(text);
-      setTimeout(() => { lastResult = null; }, 2000); // 2초 후 같은 QR 재인식 허용
+      // 매번 unique한 값으로 보내야 Streamlit이 rerun을 트리거함
+      sendValue({ text: text, ts: Date.now() });
+      if (resetTimer) clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => { lastResult = null; }, 1500);
     }
 
     function applyScanHeight() {
