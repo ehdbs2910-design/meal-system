@@ -11,13 +11,6 @@ st.set_page_config(page_title="대시보드", page_icon="📊", layout="wide")
 require_login()
 render_sidebar_nav()
 
-ALLERGY_MAP = {
-    "1": "난류", "2": "우유", "3": "메밀", "4": "땅콩", "5": "대두",
-    "6": "밀", "7": "고등어", "8": "게", "9": "새우", "10": "돼지고기",
-    "11": "복숭아", "12": "토마토", "13": "아황산류", "14": "호두",
-    "15": "닭고기", "16": "쇠고기", "17": "오징어", "18": "조개류",
-}
-
 # ════════════════════════════════════════════════════════════
 # 데이터 로드
 # ════════════════════════════════════════════════════════════
@@ -115,11 +108,8 @@ def render_grade(df_s: pd.DataFrame, df_st: pd.DataFrame):
         st.success("✅ 전원 수령 완료!")
     else:
         with st.expander(f"⚠️ 미수령 학생 {len(not_recv)}명", expanded=True):
-            not_recv["알레르기"] = not_recv["allergies"].apply(
-                lambda x: ", ".join(f"{c}.{ALLERGY_MAP.get(c,c)}" for c in (x or [])) or "없음"
-            )
-            show = not_recv[["grade", "class_number", "name", "student_number", "알레르기"]].copy()
-            show.columns = ["학년", "반", "이름", "학번", "알레르기"]
+            show = not_recv[["grade", "class_number", "name", "student_number"]].copy()
+            show.columns = ["학년", "반", "이름", "학번"]
             st.dataframe(show, use_container_width=True, hide_index=True)
 
 

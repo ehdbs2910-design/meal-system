@@ -10,20 +10,6 @@ st.set_page_config(page_title="학생 관리", page_icon="👨‍🎓", layout="
 require_login()
 render_sidebar_nav()
 
-# ── 알레르기 코드 매핑 ────────────────────────────────────
-ALLERGY_MAP = {
-    "1": "난류", "2": "우유", "3": "메밀", "4": "땅콩", "5": "대두",
-    "6": "밀", "7": "고등어", "8": "게", "9": "새우", "10": "돼지고기",
-    "11": "복숭아", "12": "토마토", "13": "아황산류", "14": "호두",
-    "15": "닭고기", "16": "쇠고기", "17": "오징어", "18": "조개류",
-}
-
-def allergy_label(codes: list) -> str:
-    if not codes:
-        return ""
-    return ", ".join(f"{c}.{ALLERGY_MAP.get(c, c)}" for c in codes)
-
-
 # ── DB 함수 ───────────────────────────────────────────────
 
 def load_students():
@@ -129,18 +115,12 @@ def validate_csv(df: pd.DataFrame) -> list[str]:
 def csv_to_rows(df: pd.DataFrame) -> list[dict]:
     rows = []
     for _, row in df.iterrows():
-        allergies = []
-        if "allergies" in df.columns and not pd.isna(row.get("allergies", "")):
-            raw = str(row["allergies"]).strip()
-            if raw:
-                allergies = [a.strip() for a in raw.split("|") if a.strip()]
         rows.append({
             "student_number": str(row["student_number"]).strip(),
             "name": str(row["name"]).strip(),
             "grade": int(row["grade"]),
             "class_number": int(row["class_number"]),
             "class_roll_number": int(row["class_roll_number"]) if "class_roll_number" in df.columns and not pd.isna(row.get("class_roll_number", float("nan"))) else None,
-            "allergies": allergies,
             "is_active": True,
         })
     return rows
@@ -188,14 +168,11 @@ with tab1:
         st.caption(f"총 **{len(df)}명** 표시 중 (전체 {len(students)}명)")
 
         # 표시용 컬럼 정리
-        display_df = df[["grade", "class_number", "class_roll_number", "name", "student_number", "allergies"]].copy()
-        display_df["allergies"] = display_df["allergies"].apply(
-            lambda x: allergy_label(x) if x else "없음"
-        )
+        display_df = df[["grade", "class_number", "class_roll_number", "name", "student_number"]].copy()
         display_df["class_roll_number"] = display_df["class_roll_number"].apply(
             lambda x: int(x) if pd.notna(x) else ""
         )
-        display_df.columns = ["학년", "반", "번호", "이름", "학번", "알레르기"]
+        display_df.columns = ["학년", "반", "번호", "이름", "학번"]
 
         st.dataframe(display_df, use_container_width=True, hide_index=True)
 
@@ -224,13 +201,7 @@ with tab1:
                         with col_roll:
                             new_roll = st.number_input("번호", min_value=1, max_value=99,
                                                         value=int(target.get("class_roll_number") or 1))
-                        current_allergies = target.get("allergies") or []
-                        new_allergies = st.multiselect(
-                            "알레르기",
-                            options=list(ALLERGY_MAP.keys()),
-                            format_func=lambda x: f"{x}. {ALLERGY_MAP[x]}",
-                            default=current_allergies,
-                        )
+                        new_number = st.text_input("학번", value=target["student_number"])
 
                         col_save, col_del = st.columns(2)
                         with col_save:
@@ -242,11 +213,11 @@ with tab1:
 
                     if save:
                         _, err = update_student(target["id"], {
+                            "student_number": new_number.strip(),
                             "name": new_name,
                             "grade": new_grade,
                             "class_number": new_class,
                             "class_roll_number": new_roll,
-                            "allergies": new_allergies,
                         })
                         if err:
                             st.error(f"❌ {err}")
@@ -276,20 +247,17 @@ with tab2:
 | `grade` | 학년 (1~3) | ✅ |
 | `class_number` | 반 (1~20) | ✅ |
 | `class_roll_number` | 번호 (1~99) | ❌ |
-| `allergies` | 알레르기 번호, `\|`로 구분 | ❌ |
-
-**알레르기 번호:** 1.난류 2.우유 3.메밀 4.땅콩 5.대두 6.밀 7.고등어 8.게 9.새우 10.돼지고기...
 
 **예시:**
 ```
-student_number,name,grade,class_number,allergies
-20240101,홍길동,1,1,1|2
-20240102,김철수,1,1,
+student_number,name,grade,class_number,class_roll_number
+20240101,홍길동,1,1,1
+20240102,김철수,1,1,2
 ```
         """)
 
     # 샘플 CSV 다운로드
-    sample_csv = "student_number,name,grade,class_number,class_roll_number,allergies\n20240101,홍길동,1,1,1,1|2\n20240102,김철수,1,2,1,\n"
+    sample_csv = "student_number,name,grade,class_number,class_roll_number\n20240101,홍길동,1,1,1\n20240102,김철수,1,2,1\n"
     st.download_button(
         "⬇️ 샘플 CSV 다운로드",
         data=sample_csv.encode("utf-8-sig"),
