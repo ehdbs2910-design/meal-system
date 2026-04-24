@@ -101,10 +101,10 @@ def render_last_checkin():
     if not last:
         return
     box = (
-        f"<div style='padding:10px 14px;border-radius:8px;margin-top:8px;"
+        f"<div style='padding:14px 18px;border-radius:8px;margin-top:8px;"
         f"background:{ {'ok':'#d4edda','duplicate':'#fff3cd','error':'#f8d7da'}[last['status']] };"
-        f"color:#222;font-size:15px;'>"
-        f"<b>직전:</b> {last['student_number']} · {last['name']}"
+        f"color:#222;font-size:20px;font-weight:600;'>"
+        f"{last['student_number']} · {last['name']}"
         f"{ {'ok':' ✅','duplicate':' ⚠️ 중복','error':' ❌'}[last['status']] }"
         f"</div>"
     )
